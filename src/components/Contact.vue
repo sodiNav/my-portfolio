@@ -21,11 +21,11 @@
 		// Ensure the user completes the reCAPTCHA challenge before submitting the form.
         // Check if a reCAPTCHA token exists
         // recaptchaToken.value - stores the verification token returned by Google reCAPTCHA
-		// if(!recaptchaToken.value) {
-		// 	notyf.error('Please verify that you are not a robot');
-		// 	// Stop the form submission process
-		// 	return;
-		// }
+		if(!recaptchaToken.value) {
+			notyf.error('Please verify that you are not a robot');
+			// Stop the form submission process
+			return;
+		}
 
 		// While the email is being sent, disable the button and change it text to "Sending..."
 		isLoading.value = true;
@@ -65,7 +65,7 @@
 			notyf.error("Failed to send message.");
 		} finally {
 			// Reset the reCAPTCHA widget after the submission process completes, whether the request succeeds or fails.
-			// resetRecaptcha();
+			resetRecaptcha();
 		}
 
 	}
