@@ -70,6 +70,76 @@
 
 	}
 
+    /*reCAPTCHA Integration*/
+
+    const SITE_KEY = '6LdJZActAAAAAAgD9YJfVBvLP0XKlwweke1JQJ7l';  // Replace with your site key
+    // The location where the reCAPTCHA checkbox will appear
+    const recaptchaContainer = ref(null);
+    // The ID of the reCAPTCHA widget after it is created
+    const recaptchaWidgetId = ref(null);
+    // Stores the token generated when the user completes reCAPTCHA
+    const recaptchaToken = ref('');
+
+    // Runs when the user successfully completes the reCAPTCHA challenge
+    function onRecaptchaSuccess(token) {
+        recaptchaToken.value = token;
+    }
+
+    // Runs when the reCAPTCHA verification expires
+    // Token typically expires after about 2 minutes (120 seconds) if the form has not been submitted
+    function onRecaptchaExpired() {
+        recaptchaToken.value = '';
+    }
+
+    // Creates and displays the reCAPTCHA widget
+    function renderRecaptcha() {
+    	// Check if the Google reCAPTCH script is available
+    	// window - refers to the browser window object
+        if (!window.grecaptcha) {
+            console.error('reCAPTCHA not loaded');
+            return;
+        }
+
+        // Creates the reCAPTCHA widget and save its ID
+        // Google returns a unique widget ID after creating the reCAPTCHA widget
+            // render() generates the reCAPTCHA checkbox inside recaptchaContainer.value
+            // Call window.grecaptcha.render() to create the widget, then store the widget ID returned by Google in recaptchaWidgetId.value.
+        recaptchaWidgetId.value = window.grecaptcha.render(recaptchaContainer.value, {
+            sitekey: SITE_KEY,
+            size: 'normal',
+            callback: onRecaptchaSuccess,
+            'expired-callback': onRecaptchaExpired,
+        });
+    }
+
+    // Function the resets the reCAPTCHA widget
+    function resetRecaptcha() {
+        if (recaptchaWidgetId.value !== null) {
+        	window.grecaptcha.reset(recaptchaWidgetId.value);
+        	recaptchaToken.value = '';
+        }
+    }
+
+    onMounted(() => {
+    // Check if the Google reCAPTCHA library has finished loading, since it is loaded asynchronously from index.html.
+    // This makes sure that the reCAPTCHA widget is rendered only after the library is available.
+    // setInterval() is a JavaScript function that repeatedly executes a block of code at a specified time interval.
+    const interval = setInterval(() => {
+        if (window.grecaptcha && window.grecaptcha.render) {
+            renderRecaptcha();
+            // Stop checking once the widget has been rendered
+            clearInterval(interval);
+        }
+        // Check every 100 milliseconds if the Google reCAPTCHA library has loaded
+    }, 100);
+
+    // Run cleanup code before the component is removed
+	onBeforeUnmount(() => {
+            // Stop checking once the widget has been rendered
+        clearInterval(interval);
+        });
+    });  
+
 
 </script>
 
@@ -100,6 +170,12 @@
                         </div>
                         <button type="submit" class="submit-btn pl-5 pr-5" :disabled="isLoading">{{ isLoading ? 'Sending...' : 'Submit' }}</button>
                     </div>
+
+                    <!-- The location where the reCAPTCHA checkbox will appear -->
+	                <div class="d-flex justify-content-end mt-2">
+	                	<!-- Creates a reference to the div so the reCAPTCHA widget can be rendered into it. -->
+	                	<div ref="recaptchaContainer"></div>
+	                </div>
                 </form>
                 
             </div>
